@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bulls and Cows - Home</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .description {
+            margin: 20px 0;
+            line-height: 1.6;
+            color: #666;
+        }
+        .mode-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            border-left: 4px solid #2196F3;
+        }
+        .form-group {
+            margin: 20px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        input, select {
+            padding: 10px;
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .checkbox-group input {
+            width: auto;
+            margin-right: 10px;
+        }
+        .checkbox-group label {
+            margin-bottom: 0;
+            font-weight: normal;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Bulls and Cows Game Solver</h1>
+
+        <div class="description">
+            <p><strong>How to Use:</strong></p>
+            <p>Classic Mastermind game. The AI solver tries to crack the secret code.</p>
+            <ul>
+                <li><strong>Human Opponent</strong>: the solver gives the next guess, you reply with the feedback</li>
+                <li><strong>Bot Opponent</strong>: the solver gives the next guess, the bot gives the feedback</li>
+            </ul>
+            <p>The opponent (other human or the bot) will generate a secret code using colors. The solver AI will try to guess the code, and you'll see how it narrows down the possibilities with each guess.</p>
+            <ul>
+                <li><strong>Bulls</strong> (🎯): Correct color in the correct position</li>
+                <li><strong>Cows</strong> (⚪): Correct color but wrong position</li>
+            </ul>
+        </div>
+
+        <form action="/new-game" method="POST">
+            <div class="form-group">
+                <label for="code_length">Code Length:</label>
+                <select name="code_length" id="code_length">
+                    {% for n in [3,4,5,6,7] %}
+                        <option value="{{ n }}" {% if n == code_length %}selected{% endif %}>{{ n }} Colors</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <div class="checkbox-group">
+                    <input type="checkbox" name="repeats_allowed" id="repeats_allowed" {% if repeats_allowed %}checked{% endif %}>
+                    <label for="repeats_allowed" style="margin-bottom: 0;">Allow repeated colors</label>
+                </div>
+            </div>
+
+            <fieldset>
+                <legend>Select an opponent:</legend>
+                <div>
+                    <input type="radio" id="bot" name="opponent" value="bot" {% if not human_opponent %}checked{% endif %}>
+                    <label for="bot">Bot</label>
+                </div>
+                <div>
+                    <input type="radio" id="human" name="opponent" value="human" {% if human_opponent %}checked{% endif %}>
+                    <label for="human">Human</label>
+                </div>
+            </fieldset>
+
+            <button type="submit">Start New Game</button>
+        </form>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bulls and Cows - Solver Running</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .game-info {
+            background: #e8f5e9;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .human-mode-banner {
+            background: #fff3e0;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #ff9800;
+        }
+        .color-box {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            margin: 2px;
+            border-radius: 5px;
+            border: 2px solid #333;
+            text-align: center;
+            line-height: 40px;
+            font-size: 12px;
+            color: white;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+        .feedback-form {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border: 2px solid #2196F3;
+        }
+        .feedback-inputs {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            margin: 15px 0;
+        }
+        .feedback-input-group {
+            flex: 1;
+        }
+        .feedback-input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .feedback-input-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .current-guess {
+            background: #fff9c4;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            text-align: center;
+            border: 2px solid #fbc02d;
+        }
+        .history {
+            margin: 20px 0;
+        }
+        .guess-row {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin: 10px 0;
+            background: #f9f9f9;
+            border-radius: 5px;
+            border-left: 4px solid #4CAF50;
+        }
+        .guess-row.win {
+            background: #c8e6c9;
+            border-left-color: #2e7d32;
+        }
+        .round-number {
+            font-weight: bold;
+            min-width: 80px;
+            color: #666;
+        }
+        .guess-colors {
+            flex: 1;
+            margin: 0 20px;
+        }
+        .feedback {
+            min-width: 150px;
+            text-align: right;
+            font-weight: bold;
+        }
+        .bulls {
+            color: #d32f2f;
+        }
+        .cows {
+            color: #1976d2;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button.secondary {
+            background-color: #2196F3;
+        }
+        button.secondary:hover {
+            background-color: #0b7dda;
+        }
+        .win-message {
+            background: #4CAF50;
+            color: white;
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+            margin: 20px 0;
+            font-size: 18px;
+        }
+        .options-count {
+            font-size: 12px;
+            color: #666;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Bulls and Cows Solver</h1>
+
+        <div class="game-info">
+            <p><strong>Configuration:</strong></p>
+            <p>Code Length: {{ config.code_length }} |
+               Repeats: {{ 'Allowed' if config.repeats_allowed else 'Not Allowed' }} |
+               Opponent: {{ 'Human' if config.human_opponent else 'Computer' }} |
+               Round: {{ round_number }}</p>
+            <p><strong>Available Colors:</strong>
+                {% for color in config.colors %}
+                    <span class="color-box" style="background-color: {{ color }};">{{ color[:3] }}</span>
+                {% endfor %}
+            </p>
+        </div>
+
+        {% if config.human_opponent and not game_over %}
+        <div class="human-mode-banner">
+            <strong>Human Mode:</strong> Think of a secret code and provide feedback for each guess.
+        </div>
+        {% endif %}
+
+        {% if game_over %}
+        <div class="win-message">
+            Code Cracked in {{ round_number }} rounds!
+        </div>
+        {% endif %}
+
+        {% if waiting_for_feedback %}
+        <div class="current-guess">
+            <h3>AI's Guess:</h3>
+            <div style="margin: 15px 0;">
+                {% for color in current_guess %}
+                    <span class="color-box" style="background-color: {{ color }};">{{ color[:3] }}</span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="feedback-form">
+            <h3>Provide Feedback:</h3>
+            <p>How many bulls and cows does this guess have?</p>
+            <form action="/submit-feedback" method="POST">
+                <div class="feedback-inputs">
+                    <div class="feedback-input-group">
+                        <label for="bulls">🎯 Bulls (correct position):</label>
+                        <input type="number" name="bulls" id="bulls" min="0" max="{{ config.code_length }}" value="0" required>
+                    </div>
+                    <div class="feedback-input-group">
+                        <label for="cows">⚪ Cows (wrong position):</label>
+                        <input type="number" name="cows" id="cows" min="0" max="{{ config.code_length }}" value="0" required>
+                    </div>
+                </div>
+                <button type="submit">Submit Feedback</button>
+            </form>
+        </div>
+        {% endif %}
+
+        <div class="history">
+            <h2>Game History:</h2>
+
+            {% if history|length == 0 %}
+            <p style="color: #999; text-align: center; padding: 40px;">
+                {% if config.human_opponent %}
+                Think of your secret code, then click "Make Next Guess" to see the AI's first attempt.
+                {% else %}
+                Click "Make Next Guess" to start playing!
+                {% endif %}
+            </p>
+            {% endif %}
+
+            {% for entry in history %}
+            <div class="guess-row {% if entry.bulls == config.code_length %}win{% endif %}">
+                <div class="round-number">Round {{ entry.round }}:</div>
+                <div class="guess-colors">
+                    {% for color in entry.guess %}
+                        <span class="color-box" style="background-color: {{ color }};">{{ color[:3] }}</span>
+                    {% endfor %}
+                </div>
+                <div class="feedback">
+                    <span class="bulls">🎯 {{ entry.bulls }} Bulls</span> |
+                    <span class="cows">⚪ {{ entry.cows }} Cows</span>
+                    <div class="options-count">{{ entry.options }} options remaining</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div style="text-align: center; margin-top: 30px;">
+            {% if not game_over %}
+            <form action="/make-guess" method="POST" style="display: inline;">
+                <button type="submit">Make Next Guess</button>
+            </form>
+            {% endif %}
+
+            <form action="/" method="GET" style="display: inline;">
+                <button type="submit" class="secondary">New Game</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

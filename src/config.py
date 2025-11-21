@@ -14,4 +14,4 @@ class BullsAndCowsConfig:
     code_length: int = 4
     colors: Tuple[str, ...] = ('red', 'blue', 'cyan', 'green', 'yellow', 'orange')
     repeats_allowed: bool = False
-    human_opponent: bool = True
+    human_opponent: bool = False
