@@ -23,21 +23,35 @@ class Solver:
 
     def get_guess(self) -> tuple[str, ...]:
         if self.get_number_options() == 0:
-            raise "Incompatible results"
+            raise ValueError("Incompatible results")
         self.last_guess = choice(self.possible_codes)
         return self.last_guess
 
     def get_number_options(self) -> int:
         return len(self.possible_codes)
 
+    def validate_feedback(self, feedback: tuple[int, ...]) -> bool:
+        if any(not isinstance(item, int) for item in feedback):
+            return False
+        if any(item < 0 for item in feedback):
+            return False
+        if any(item > self.config.code_length for item in feedback):
+            return False
+        if (feedback[0] + feedback[1]) > self.config.code_length:
+            return False
+        return True
+
     def remove_incompatible_options(self, feedback: tuple[int, ...]):
         # remove options incompatible with latest guess-feedback couple
-        remaining_options = list()
-        for option in self.possible_codes:
-            option_evaluate = self.model.evaluate_guess(option, self.last_guess)
-            if option_evaluate == feedback:
-                remaining_options.append(option)  # option compatible with guess feedback
-        self.possible_codes = remaining_options
+        if self.validate_feedback(feedback):
+            remaining_options = list()
+            for option in self.possible_codes:
+                option_evaluate = self.model.evaluate_guess(option, self.last_guess)
+                if option_evaluate == feedback:
+                    remaining_options.append(option)  # option compatible with guess feedback
+            self.possible_codes = remaining_options
+        else:
+            raise ValueError("Incompatible feedback received")
 
 
 '''

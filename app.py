@@ -178,15 +178,24 @@ def make_guess():
         solver.last_guess = tuple(entry['guess'])
         # Restore the guess
 
-        solver.remove_incompatible_options(tuple(entry['feedback']))
         # Process the feedback to eliminate impossible codes
+        try:
+            solver.remove_incompatible_options(tuple(entry['feedback']))
+        except ValueError:
+            # if incompatible feedback - reset
+            return redirect(url_for('home'))
+
 
     # Get new guess from solver
     session['round_number'] += 1
     # Increment round counter
 
-    guess = solver.get_guess()
     # Solver picks a random guess from remaining possibilities
+    try:
+        guess = solver.get_guess()
+    except ValueError:
+        # if incompatible feedback - reset
+        return redirect(url_for('home'))
 
     number_options = solver.get_number_options()
     # How many possibilities remain
@@ -238,6 +247,9 @@ def submit_feedback():
     except (ValueError, TypeError):
         # basic error handling if inputs are empty
         return redirect(url_for('play'))
+    if not solver.validate_feedback((bulls, cows)):
+        # more error handling
+        return redirect(url_for('play'))
 
     # 2. Retrieve the guess we are providing feedback for
     current_guess = session.get('current_guess')
@@ -270,7 +282,7 @@ if __name__ == '__main__':
     # This runs only if you execute this file directly (python app.py)
     # Not if you import it
 
-    app.run(debug=True)
+    app.run(debug=False)
     # Start the Flask web server
     # debug=True means:
     #   - Auto-reload when you change code

@@ -106,6 +106,73 @@ class TestSolver:
             possible_number = possible_number * (len(config.colors) - idx)
         assert number_options == possible_number
 
+    def test_validate_feedback_correct(self):
+        config = BullsAndCowsConfig()
+        model = GameModel(config)
+        solver = Solver(config=config, model=model)
+
+        bulls = 2
+        cows = 1
+        feedback = (bulls, cows)
+        assert solver.validate_feedback(feedback) is True
+
+    def test_validate_feedback_not_number(self):
+        config = BullsAndCowsConfig()
+        model = GameModel(config)
+        solver = Solver(config=config, model=model)
+
+        bulls = '2'
+        cows = 3
+        feedback = (bulls, cows)
+        assert solver.validate_feedback(feedback) is False
+
+    def test_validate_feedback_negative(self):
+        config = BullsAndCowsConfig()
+        model = GameModel(config)
+        solver = Solver(config=config, model=model)
+
+        bulls = 1
+        cows = -3
+        feedback = (bulls, cows)
+        assert solver.validate_feedback(feedback) is False
+
+        bulls = -2
+        cows = 1
+        feedback = (bulls, cows)
+        assert solver.validate_feedback(feedback) is False
+
+    def test_validate_feedback_max(self):
+        config = BullsAndCowsConfig()
+        config.code_length = 5
+        model = GameModel(config)
+        solver = Solver(config=config, model=model)
+
+        bulls = 1
+        cows = 6
+        feedback = (bulls, cows)
+        assert solver.validate_feedback(feedback) is False
+
+        bulls = 7
+        cows = 0
+        feedback = (bulls, cows)
+        assert solver.validate_feedback(feedback) is False
+
+    def test_validate_feedback_max_total(self):
+        config = BullsAndCowsConfig()
+        config.code_length = 5
+        model = GameModel(config)
+        solver = Solver(config=config, model=model)
+
+        bulls = 1
+        cows = 5
+        feedback = (bulls, cows)
+        assert solver.validate_feedback(feedback) is False
+
+        bulls = 3
+        cows = 3
+        feedback = (bulls, cows)
+        assert solver.validate_feedback(feedback) is False
+
     def test_remove_incompatible_options(self):
         config = BullsAndCowsConfig()
         config.colors = ('a', 'b', 'c', 'd')
